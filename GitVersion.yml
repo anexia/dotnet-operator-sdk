@@ -1,0 +1,18 @@
+assembly-versioning-scheme: MajorMinorPatch
+mode: ContinuousDeployment
+tag-prefix: '[vV]'
+commit-message-incrementing: Enabled
+continuous-delivery-fallback-tag: ''
+branches:
+  main:
+    source-branches: [ 'feature', 'integration' ]
+    regex: ^master|^origin\/master|^main|^origin\/main$
+    mode: ContinuousDelivery
+    tag: beta
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    tracks-release-branches: false
+    is-release-branch: true
+    is-mainline: false
+

@@ -4,7 +4,15 @@
   "tools": {
     "docfx": {
       "version": "2.75.3",
-      "commands": ["docfx"]
+      "commands": [
+        "docfx"
+      ]
+    },
+    "nbgv": {
+      "version": "3.6.133",
+      "commands": [
+        "nbgv"
+      ]
     }
   }
 }

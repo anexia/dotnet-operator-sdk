@@ -1,0 +1,33 @@
+stages:
+  - build
+  - test
+  - review
+  - publish
+  - production
+
+default:
+  interruptible: true
+
+include:
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml  # https://gitlab.com/gitlab-org/gitlab/blob/master/lib/gitlab/ci/templates/Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/SAST.gitlab-ci.yml  # https://gitlab.com/gitlab-org/gitlab/blob/master/lib/gitlab/ci/templates/Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/License-Scanning.gitlab-ci.yml  # https://gitlab.com/gitlab-org/gitlab/blob/master/lib/gitlab/ci/templates/Jobs/License-Scanning.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml  # https://gitlab.com/gitlab-org/gitlab/blob/master/lib/gitlab/ci/templates/Jobs/Secret-Detection.gitlab-ci.yml
+  
+# .NET nuget packages build and push to gitlab package registry using GitVersion for auto-versioning.
+# Try add nuget source only, because of dependency needs this repo may already added as source at this stage.
+nuget-build-and-push:
+  stage: publish
+  variables:
+    GIT_DEPTH: "1000" # Needed for correct git versioning
+  script:
+    - dotnet tool restore
+    - export APP_VERSION=$(dotnet nbgv get-version HEAD -v Version)
+    - echo "publish ${APP_VERSION}"
+    - dotnet pack -c Release -o ./publish/ -p:Version=$APP_VERSION
+    - set +e # Disable exit on error
+    - dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name gitlab-push --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
+    - set -e # Enable exit on error
+    - dotnet nuget push ./publish/*.nupkg --source gitlab-push --skip-duplicate
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
