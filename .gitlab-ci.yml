@@ -18,6 +18,7 @@ include:
 # Try add nuget source only, because of dependency needs this repo may already added as source at this stage.
 nuget-build-and-push:
   stage: publish
+  image: mcr.microsoft.com/dotnet/sdk:8.0
   variables:
     GIT_DEPTH: "1000" # Needed for correct git versioning
   script:
